@@ -1,0 +1,818 @@
+<!-- Daylor's Alcohol Management — Keg Monitor Console (B&W) -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --ink: #0b0b0b;
+    --ink-2: #191919;
+    --paper: #ffffff;
+    --panel: #fafafa;
+    --panel-2: #f1f1ef;
+    --line: #e4e4e2;
+    --line-2: #cfcfcc;
+    --g-1: #8d8d8a;
+    --g-2: #6a6a67;
+    --g-3: #3d3d3b;
+    --radius: 10px;
+    --mono: "Space Mono", ui-monospace, monospace;
+    --sans: "Space Grotesk", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  button { font-family: var(--sans); cursor: pointer; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--g-2);
+  }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* ================= LOGIN ================= */
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .login-card {
+    width: 100%; max-width: 380px;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    padding: 38px 32px 28px;
+  }
+  .lock-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 34px; }
+  .lock-brand .glyph {
+    width: 30px; height: 30px; border: 1.5px solid var(--ink);
+    display: grid; place-items: center; font-family: var(--mono); font-weight: 700;
+  }
+  .lock-brand .name { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+  .lock-brand .sub { font-family: var(--mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--g-1); }
+  .login-card h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; }
+  .login-card .lede { color: var(--g-2); font-size: 13.5px; margin: 0 0 24px; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--g-2); margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%; background: var(--paper); border: 1.5px solid var(--line-2);
+    border-radius: 4px; color: var(--ink); padding: 11px 13px; font-size: 15px; font-family: var(--sans);
+  }
+  .field input:focus { border-color: var(--ink); outline: none; }
+  .btn-primary {
+    width: 100%; margin-top: 6px; background: var(--ink); color: var(--paper);
+    border: 1.5px solid var(--ink); border-radius: 4px; padding: 13px; font-weight: 600; font-size: 14px;
+    transition: background 0.12s;
+  }
+  .btn-primary:hover { background: var(--ink-2); }
+  .login-error { color: var(--ink); font-weight: 700; font-size: 13px; margin: 12px 0 0; min-height: 18px; }
+  .demo-creds { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .demo-creds .eyebrow { display: block; margin-bottom: 10px; }
+  .cred-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 12px; padding: 7px 0; color: var(--g-2);
+    cursor: pointer; transition: color 0.12s;
+  }
+  .cred-row:hover { color: var(--ink); }
+  .cred-row code { color: var(--ink); }
+  .cred-row .role {
+    font-family: var(--sans); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink); border: 1px solid var(--line-2); padding: 3px 8px; border-radius: 20px;
+  }
+
+  /* ================= APP SHELL ================= */
+  #app { display: none; }
+  #app.active { display: block; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 26px; height: 60px; border-bottom: 1.5px solid var(--ink);
+    position: sticky; top: 0; z-index: 30; background: var(--paper);
+  }
+  .topbar .left { display: flex; align-items: center; gap: 26px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .glyph { width: 26px; height: 26px; border: 1.5px solid var(--ink); display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 13px; }
+  .brand .name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .brand .sub { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--g-1); }
+
+  .tabs { display: flex; gap: 2px; }
+  .tab {
+    background: transparent; border: none; padding: 8px 15px;
+    font-size: 13.5px; font-weight: 500; color: var(--g-2); border-radius: 6px;
+    position: relative; transition: color 0.12s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); font-weight: 600; }
+  .tab.active::after {
+    content: ""; position: absolute; left: 15px; right: 15px; bottom: -1px; height: 2px; background: var(--ink);
+  }
+
+  .user-chip { display: flex; align-items: center; gap: 12px; }
+  .user-chip .who .u { font-weight: 600; font-size: 13.5px; text-align: right; }
+  .user-chip .who .r { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--g-2); text-align: right; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--line-2); color: var(--g-2); border-radius: 6px; padding: 7px 13px; font-size: 12.5px; transition: border-color 0.12s, color 0.12s; }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* ---------- Temperature strip ---------- */
+  .temp-strip {
+    display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+    padding: 14px 26px; border-bottom: 1px solid var(--line);
+    background: var(--panel); position: sticky; top: 60px; z-index: 20;
+  }
+  .temp-strip.warn { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .temp-lead { display: flex; align-items: baseline; gap: 14px; }
+  .temp-lead .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--g-2); }
+  .temp-strip.warn .temp-lead .lbl { color: #c9c9c9; }
+  .temp-reading { font-family: var(--mono); font-weight: 700; font-size: 30px; letter-spacing: -0.02em; line-height: 1; }
+  .temp-reading .deg { font-size: 17px; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); margin-right: 6px; animation: pulse 1.6s ease-in-out infinite; }
+  .temp-strip.warn .live-dot { background: var(--paper); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .temp-meta { display: flex; gap: 20px; font-family: var(--mono); font-size: 11px; color: var(--g-2); flex-wrap: wrap; }
+  .temp-strip.warn .temp-meta { color: #c9c9c9; }
+  .temp-meta b { color: var(--ink); }
+  .temp-strip.warn .temp-meta b { color: var(--paper); }
+  .temp-state {
+    margin-left: auto; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; border: 1.5px solid var(--ink); padding: 5px 12px; border-radius: 20px;
+  }
+  .temp-strip.warn .temp-state { border-color: var(--paper); background: var(--paper); color: var(--ink); }
+
+  .main { max-width: 1180px; margin: 0 auto; padding: 30px 26px 70px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-head { margin-bottom: 24px; }
+  .page-head .eyebrow { display: block; margin-bottom: 8px; }
+  .page-head h2 { font-size: 30px; font-weight: 700; margin: 0; letter-spacing: -0.025em; }
+  .page-head p { color: var(--g-2); margin: 6px 0 0; font-size: 14px; }
+
+  /* ---------- Controls ---------- */
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .select { background: var(--paper); border: 1.5px solid var(--line-2); color: var(--ink); border-radius: 6px; padding: 10px 13px; font-size: 13px; font-family: var(--sans); }
+  .toggle { display: flex; align-items: center; gap: 8px; background: var(--paper); border: 1.5px solid var(--line-2); border-radius: 6px; padding: 9px 13px; font-size: 13px; color: var(--g-2); user-select: none; }
+  .toggle input { accent-color: var(--ink); width: 15px; height: 15px; }
+  .toggle.on { color: var(--ink); border-color: var(--ink); }
+
+  /* ================= LEVELS ================= */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .lvl-card { background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .lvl-card.crit { border-color: var(--ink); border-width: 1.5px; box-shadow: inset 0 0 0 1px var(--ink); }
+  .lvl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .lvl-name { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
+  .lvl-style { font-size: 12px; color: var(--g-2); margin-top: 3px; }
+  .lvl-style .guest { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--line-2); border-radius: 20px; padding: 1px 6px; margin-left: 5px; }
+  .chip { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 9px; border-radius: 20px; white-space: nowrap; }
+  .chip.ok { border: 1.5px solid var(--line-2); color: var(--g-2); }
+  .chip.low { background: var(--ink); color: var(--paper); }
+  .chip.crit { background: var(--ink); color: var(--paper); }
+
+  .lvl-pct { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .lvl-pct .big { font-family: var(--mono); font-weight: 700; font-size: 34px; letter-spacing: -0.02em; line-height: 1; }
+  .lvl-pct .pints { font-family: var(--mono); font-size: 12px; color: var(--g-2); }
+  .bar { height: 8px; background: var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+  .bar-fill { height: 100%; width: 0; background: var(--ink); border-radius: 8px; transition: width 0.9s cubic-bezier(0.22,1,0.36,1); }
+  .crit .bar-fill { background: repeating-linear-gradient(45deg, var(--ink) 0 5px, #4a4a4a 5px 8px); }
+
+  .lvl-stats { display: flex; gap: 18px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .lvl-stats .s .n { font-family: var(--mono); font-weight: 700; font-size: 15px; }
+  .lvl-stats .s .n .arrow { font-size: 12px; }
+  .lvl-stats .s .l { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--g-2); margin-top: 2px; }
+  .trend-note { font-size: 12.5px; color: var(--g-3); margin: 0 0 14px; }
+  .trend-note b { color: var(--ink); font-weight: 700; }
+  .autotrack { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--g-2); margin: -6px 0 14px; }
+  .autotrack .live-dot { width: 6px; height: 6px; }
+
+  .lvl-card.pending { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .detect-note { font-size: 13px; color: var(--g-3); line-height: 1.5; margin: 4px 0 14px; }
+  .confirm-row { margin-bottom: 14px; }
+  .confirm-guess { font-size: 14px; }
+  .confirm-guess b { font-weight: 700; }
+
+  .edit-form { display: flex; flex-direction: column; gap: 10px; }
+  .edit-form label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--g-2); display: flex; flex-direction: column; gap: 5px; }
+  .edit-form input, .edit-form select { font-family: var(--sans); font-size: 14px; color: var(--ink); background: var(--paper); border: 1.5px solid var(--line-2); border-radius: 6px; padding: 9px 11px; text-transform: none; letter-spacing: 0; }
+  .edit-form input:focus, .edit-form select:focus { border-color: var(--ink); outline: none; }
+  .edit-form .lvl-actions { margin-top: 4px; }
+
+  .lvl-actions { display: flex; gap: 8px; }
+  .btn-mini { flex: 1; background: var(--paper); border: 1.5px solid var(--line-2); color: var(--ink); border-radius: 6px; padding: 9px; font-size: 12.5px; font-weight: 500; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+  .btn-mini:hover { border-color: var(--ink); }
+  .btn-mini.solid { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn-mini.solid:hover { background: var(--ink-2); }
+
+  /* ================= ORDERING ================= */
+  .order-wrap { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+  .table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .table thead th {
+    text-align: left; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--g-2); font-weight: 400; padding: 12px 14px; border-bottom: 1.5px solid var(--line-2); background: var(--panel-2);
+  }
+  .table tbody td { padding: 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
+  .table tbody tr:last-child td { border-bottom: none; }
+  .table tbody tr.urgent { background: var(--ink); color: var(--paper); }
+  .table tbody tr.urgent .t-sub { color: #c4c4c4; }
+  .t-name { font-weight: 600; font-size: 14.5px; }
+  .t-sub { font-size: 11.5px; color: var(--g-2); }
+  .t-num { font-family: var(--mono); }
+  .order-tag { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; border: 1.5px solid currentColor; padding: 3px 8px; border-radius: 20px; display: inline-block; }
+  .order-tag.now { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .qty-pill { font-family: var(--mono); font-weight: 700; font-size: 15px; }
+  .add-check { width: 18px; height: 18px; accent-color: var(--ink); cursor: pointer; }
+  .table tbody tr.urgent .add-check { accent-color: var(--paper); }
+
+  .cart {
+    background: var(--panel); border: 1.5px solid var(--ink); border-radius: var(--radius); padding: 20px;
+    position: sticky; top: 150px;
+  }
+  .cart .eyebrow { display: block; margin-bottom: 14px; }
+  .cart-line { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  .cart-line .q { font-family: var(--mono); font-weight: 700; }
+  .cart-empty { color: var(--g-2); font-size: 13px; padding: 8px 0 14px; }
+  .cart-total { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; padding-top: 14px; border-top: 1.5px solid var(--ink); }
+  .cart-total .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--g-2); }
+  .cart-total .val { font-family: var(--mono); font-weight: 700; font-size: 26px; }
+  .cart-total .val small { font-size: 13px; color: var(--g-2); }
+  .btn-block { width: 100%; background: var(--ink); color: var(--paper); border: 1.5px solid var(--ink); border-radius: 6px; padding: 13px; font-weight: 600; font-size: 14px; transition: background 0.12s; }
+  .btn-block:hover { background: var(--ink-2); }
+  .btn-block:disabled { background: var(--paper); color: var(--g-1); border-color: var(--line-2); cursor: not-allowed; }
+  .cart-done { text-align: center; font-size: 13.5px; padding: 10px 0; }
+  .cart-done .mono { font-family: var(--mono); font-weight: 700; font-size: 18px; display: block; margin-top: 4px; }
+
+  /* ================= SUMMARY ================= */
+  .seg { display: inline-flex; border: 1.5px solid var(--ink); border-radius: 6px; overflow: hidden; margin-bottom: 24px; }
+  .seg button { background: var(--paper); border: none; padding: 9px 20px; font-size: 13px; font-weight: 500; color: var(--g-2); border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button.active { background: var(--ink); color: var(--paper); font-weight: 600; }
+
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .metric { background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .metric .k { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--g-2); margin-bottom: 10px; }
+  .metric .v { font-family: var(--mono); font-weight: 700; font-size: 28px; letter-spacing: -0.02em; line-height: 1; }
+  .metric .v small { font-size: 13px; color: var(--g-2); font-weight: 400; }
+  .metric .d { font-size: 12px; color: var(--g-3); margin-top: 8px; }
+  .metric .d b { font-weight: 700; color: var(--ink); }
+
+  .panel-note { background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 16px 20px; font-size: 14.5px; margin-bottom: 24px; }
+  .panel-note b { font-family: var(--mono); }
+
+  .charts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .chart-card { background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .chart-card h3 { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
+  .chart-card .sub { font-size: 12px; color: var(--g-2); margin: 0 0 18px; }
+
+  .barchart { display: flex; align-items: flex-end; gap: 8px; height: 180px; }
+  .barchart .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; }
+  .barchart .bar-v { width: 100%; max-width: 34px; background: var(--ink); border-radius: 3px 3px 0 0; transition: height 0.6s cubic-bezier(0.22,1,0.36,1); }
+  .barchart .bl { font-family: var(--mono); font-size: 9.5px; color: var(--g-2); }
+
+  .ranklist { display: flex; flex-direction: column; gap: 11px; }
+  .rank-row .rank-head { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px; }
+  .rank-row .rank-head .nm { font-weight: 500; }
+  .rank-row .rank-head .vl { font-family: var(--mono); color: var(--g-2); }
+  .rank-track { height: 7px; background: var(--line); border-radius: 6px; overflow: hidden; }
+  .rank-fill { height: 100%; background: var(--ink); border-radius: 6px; transition: width 0.6s ease; }
+
+  .mix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .mix .cell { border: 1.5px solid var(--line); border-radius: 8px; padding: 14px; }
+  .mix .cell .swatch { height: 6px; border-radius: 6px; margin-bottom: 10px; }
+  .mix .cell .nm { font-size: 13px; font-weight: 600; }
+  .mix .cell .pc { font-family: var(--mono); font-size: 12px; color: var(--g-2); margin-top: 2px; }
+
+  footer { text-align: center; padding: 30px; color: var(--g-1); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; }
+
+  @media (max-width: 960px) {
+    .order-wrap { grid-template-columns: 1fr; }
+    .cart { position: static; }
+    .charts { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .topbar { flex-wrap: wrap; height: auto; padding: 12px 18px; gap: 10px; }
+    .tabs { order: 3; width: 100%; }
+    .user-chip .who { display: none; }
+    .temp-strip { top: 0; position: static; }
+    .mix { grid-template-columns: 1fr 1fr; }
+    .main { padding: 22px 16px 60px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, .bar-fill, .bar-v, .rank-fill { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<!-- ===================== LOGIN ===================== -->
+<section id="login">
+  <div class="login-card">
+    <div class="lock-brand">
+      <div class="glyph">D</div>
+      <div>
+        <div class="name">Daylor's Alcohol Management</div>
+        <div class="sub">Keg Monitor</div>
+      </div>
+    </div>
+    <h1>Sign in</h1>
+    <p class="lede">Live keg levels, cooler temp, and ordering.</p>
+    <form id="login-form" autocomplete="off">
+      <div class="field"><label for="u">Username</label><input id="u" type="text" placeholder="e.g. manager" /></div>
+      <div class="field"><label for="p">Password</label><input id="p" type="password" placeholder="••••••" /></div>
+      <button class="btn-primary" type="submit">Enter console</button>
+      <p class="login-error" id="login-error" role="alert"></p>
+    </form>
+    <div class="demo-creds">
+      <span class="eyebrow">Demo accounts — tap to fill</span>
+      <div class="cred-row" data-u="admin" data-p="taproom"><span><code>admin</code> / <code>taproom</code></span><span class="role">Admin</span></div>
+      <div class="cred-row" data-u="manager" data-p="pour"><span><code>manager</code> / <code>pour</code></span><span class="role">Bar Manager</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <div class="topbar">
+    <div class="left">
+      <div class="brand">
+        <div class="glyph">D</div>
+        <div>
+          <div class="name">Daylor's Alcohol Management</div>
+          <div class="sub">Keg Monitor</div>
+        </div>
+      </div>
+      <nav class="tabs">
+        <button class="tab active" data-page="levels">Levels</button>
+        <button class="tab" data-page="ordering">Ordering</button>
+        <button class="tab" data-page="summary">Summary</button>
+      </nav>
+    </div>
+    <div class="user-chip">
+      <div class="who"><div class="u" id="chip-user">Manager</div><div class="r" id="chip-role">Bar Manager</div></div>
+      <div class="avatar" id="chip-avatar">M</div>
+      <button class="btn-ghost" id="logout">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Live cooler temperature -->
+  <div class="temp-strip" id="temp-strip">
+    <div class="temp-lead">
+      <span class="lbl">Walk-in cooler</span>
+      <span class="temp-reading" id="temp-reading">3.4<span class="deg">°C</span></span>
+    </div>
+    <div class="temp-meta">
+      <span><span class="live-dot"></span>LIVE</span>
+      <span>Target <b>2–4°C</b></span>
+      <span>Sensor <b>DS18B20</b></span>
+      <span id="temp-updated">updated just now</span>
+    </div>
+    <span class="temp-state" id="temp-state">In range</span>
+  </div>
+
+  <div class="main">
+    <!-- ============ PAGE: LEVELS ============ -->
+    <section class="page active" id="page-levels">
+      <div class="page-head">
+        <span class="eyebrow">Page 01 — Active management</span>
+        <h2>Keg levels</h2>
+        <p>Levels track straight off each load cell. A new keg is detected automatically when the weight jumps back to full.</p>
+      </div>
+      <div class="controls">
+        <select class="select" id="lvl-sort">
+          <option value="urgent">Sort: Most urgent first</option>
+          <option value="level">Sort: Level, low → high</option>
+          <option value="trend">Sort: Fastest rising</option>
+          <option value="name">Sort: Name, A → Z</option>
+        </select>
+        <label class="toggle" id="lvl-toggle"><input type="checkbox" id="lvl-low" /> Needs attention only</label>
+        <button class="btn-ghost" id="sim-swap" title="Demo stand-in for a live weight jump from the scale">⟳ Simulate keg swap</button>
+      </div>
+      <div class="grid" id="lvl-grid"></div>
+    </section>
+
+    <!-- ============ PAGE: ORDERING ============ -->
+    <section class="page" id="page-ordering">
+      <div class="page-head">
+        <span class="eyebrow">Page 02 — Recommended ordering</span>
+        <h2>Order schedule</h2>
+        <p>Order-by dates projected from current level and last-week pour rate, with a 4-day delivery buffer.</p>
+      </div>
+      <div class="order-wrap">
+        <table class="table" id="order-table">
+          <thead>
+            <tr>
+              <th style="width:34px"></th>
+              <th>Beer</th>
+              <th>Level</th>
+              <th>Stock left</th>
+              <th>Pours / week</th>
+              <th>Order by</th>
+              <th>Qty</th>
+            </tr>
+          </thead>
+          <tbody id="order-body"></tbody>
+        </table>
+        <aside class="cart" id="cart">
+          <span class="eyebrow">Order list</span>
+          <div id="cart-lines"><div class="cart-empty">Check beers on the left to build this week's order.</div></div>
+          <div class="cart-total"><span class="lbl">Total kegs</span><span class="val" id="cart-total">0</span></div>
+          <button class="btn-block" id="cart-btn" disabled>Generate order sheet</button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: SUMMARY ============ -->
+    <section class="page" id="page-summary">
+      <div class="page-head">
+        <span class="eyebrow">Page 03 — Summary</span>
+        <h2>Consumption &amp; trends</h2>
+      </div>
+      <div class="seg" id="period-seg">
+        <button data-p="day">Day</button>
+        <button data-p="week" class="active">Week</button>
+        <button data-p="month">Month</button>
+        <button data-p="year">Year</button>
+      </div>
+
+      <div class="metrics" id="sum-metrics"></div>
+      <div class="panel-note" id="sum-note"></div>
+
+      <div class="charts">
+        <div class="chart-card">
+          <h3>Pints poured</h3>
+          <p class="sub" id="chart-sub">Over the selected week</p>
+          <div class="barchart" id="barchart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Top sellers</h3>
+          <p class="sub">Share of total pours</p>
+          <div class="ranklist" id="ranklist"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3 style="margin-bottom:16px">Style mix</h3>
+        <div class="mix" id="mix"></div>
+      </div>
+    </section>
+
+    <footer>Daylor's Alcohol Management · Keg Monitor · Temp feed: DS18B20 · Levels: load-cell weight (HX711 + ESP32)</footer>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const LEAD_DAYS = 4;        // delivery buffer
+
+  // Keg sizes — full pint capacity. Needed because "100%" is a different
+  // absolute weight per size, so a swap to a new size can't be inferred by weight alone.
+  const SIZES = {
+    half:    { label:"Half barrel", pints:124 },
+    quarter: { label:"Quarter (pony)", pints:62 },
+    sixtel:  { label:"Sixtel", pints:41 },
+    import:  { label:"50L import", pints:105 },
+  };
+
+  /* ---------- Beers (9) ---------- */
+  const BEERS = [
+    { name:"Guinness",           style:"Irish Dry Stout",   guest:false, size:"half",    keg:64, ppd:20, trend:+9  },
+    { name:"Bud Light",          style:"Light Lager",       guest:false, size:"half",    keg:41, ppd:24, trend:-3  },
+    { name:"Whalers Rise",       style:"American Pale Ale", guest:false, size:"sixtel",  keg:38, ppd:7,  trend:+12 },
+    { name:"Miller Lite",        style:"Light Lager",       guest:false, size:"half",    keg:72, ppd:16, trend:+2  },
+    { name:"Stone IPA",          style:"West Coast IPA",    guest:false, size:"quarter", keg:22, ppd:9,  trend:+5  },
+    { name:"Captain's Daughter", style:"Double IPA",        guest:false, size:"sixtel",  keg:11, ppd:6,  trend:+18 },
+    { name:"Coors Light",        style:"Light Lager",       guest:false, size:"half",    keg:55, ppd:18, trend:-6  },
+    { name:"Smithwick's",        style:"Irish Red Ale",     guest:false, size:"half",    keg:83, ppd:8,  trend:+4  },
+    { name:"Yuengling",          style:"Amber Lager",       guest:false, size:"half",    keg:30, ppd:19, trend:+7  },
+  ];
+
+  // Derived fields
+  function enrich(b) {
+    const cap = SIZES[b.size].pints;
+    const pints = Math.round(b.keg / 100 * cap);
+    const daysLeft = pints / b.ppd;
+    const status = daysLeft < 1.5 ? "crit" : daysLeft < 4 ? "low" : "ok";
+    const qty = Math.max(1, Math.ceil(b.ppd * 14 / cap));
+    return { ...b, pints, daysLeft, status, qty };
+  }
+  let beers = BEERS.map(enrich);
+
+  const fmtDays = (d) => d < 1 ? "under a day" : d < 2 ? "~1 day" : `~${Math.round(d)} days`;
+  const trendStr = (t) => (t > 0 ? "▲" : t < 0 ? "▼" : "–") + " " + Math.abs(t) + "%";
+
+  /* ---------- Auth ---------- */
+  const ACCOUNTS = {
+    admin:   { pass:"taproom", display:"Alex Rivera", role:"Admin" },
+    manager: { pass:"pour",    display:"Sam Okafor",  role:"Bar Manager" },
+  };
+  document.querySelectorAll(".cred-row").forEach(r => r.addEventListener("click", () => {
+    $("u").value = r.dataset.u; $("p").value = r.dataset.p; $("login-error").textContent = ""; $("p").focus();
+  }));
+  $("login-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const u = $("u").value.trim().toLowerCase(), p = $("p").value, a = ACCOUNTS[u];
+    if (!a || a.pass !== p) { $("login-error").textContent = "No account matches those details. Try a demo login below."; return; }
+    $("login").style.display = "none"; $("app").classList.add("active");
+    $("chip-user").textContent = a.display; $("chip-role").textContent = a.role; $("chip-avatar").textContent = a.display[0];
+    renderLevels(); renderOrdering(); renderSummary(); startTemp();
+  });
+  $("logout").addEventListener("click", () => {
+    $("app").classList.remove("active"); $("login").style.display = "grid";
+    $("u").value = ""; $("p").value = ""; $("login-error").textContent = "";
+  });
+
+  /* ---------- Tabs ---------- */
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => goTo(t.dataset.page)));
+  function goTo(page) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.page === page));
+    document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === "page-" + page));
+  }
+
+  /* ---------- Live cooler temp (bind DS18B20 here) ---------- */
+  let secsAgo = 0;
+  function readSensor() {
+    // DEMO: replace this with the real DS18B20 reading pushed from the ESP32.
+    return 3.3 + (Math.random() - 0.5) * 0.7; // hovers ~2.95–3.65°C
+  }
+  function refreshTemp() {
+    const t = readSensor();
+    const inRange = t >= 2 && t <= 4;
+    $("temp-reading").innerHTML = t.toFixed(1) + '<span class="deg">°C</span>';
+    $("temp-state").textContent = inRange ? "In range" : "Out of range";
+    $("temp-strip").classList.toggle("warn", !inRange);
+    secsAgo = 0;
+  }
+  function startTemp() {
+    refreshTemp();
+    setInterval(refreshTemp, 4000);
+    setInterval(() => {
+      secsAgo++;
+      $("temp-updated").textContent = secsAgo <= 1 ? "updated just now" : `updated ${secsAgo}s ago`;
+    }, 1000);
+  }
+
+  /* ============ LEVELS ============ */
+  function statusChip(s) {
+    if (s === "crit") return '<span class="chip crit">Critical</span>';
+    if (s === "low")  return '<span class="chip low">Low</span>';
+    return '<span class="chip ok">Healthy</span>';
+  }
+  function renderLevels() {
+    const sort = $("lvl-sort").value;
+    const lowOnly = $("lvl-low").checked;
+    $("lvl-toggle").classList.toggle("on", lowOnly);
+    let list = beers.slice();
+    if (lowOnly) list = list.filter(b => b.status !== "ok");
+    const sorters = {
+      urgent:(a,b)=>a.daysLeft-b.daysLeft, level:(a,b)=>a.keg-b.keg,
+      trend:(a,b)=>b.trend-a.trend, name:(a,b)=>a.name.localeCompare(b.name),
+    };
+    list.sort(sorters[sort]);
+
+    if (!list.length) { $("lvl-grid").innerHTML = `<div style="color:var(--g-2);padding:30px">Everything's healthy — no kegs need attention.</div>`; return; }
+
+    $("lvl-grid").innerHTML = list.map(b => {
+      const idx = beers.indexOf(b);
+      // A detected-but-unconfirmed keg change: software already set 100%,
+      // it just needs the human to confirm the one thing weight can't tell it.
+      if (b.pending) return `
+        <div class="lvl-card pending">
+          <div class="lvl-top">
+            <div>
+              <div class="lvl-name">${b.name}</div>
+              <div class="lvl-style">Line back to 100% — weight jumped ${b.jumpPints || SIZES[b.size].pints} pints</div>
+            </div>
+            <span class="chip low">New keg</span>
+          </div>
+          ${b.editing ? editForm(b, idx) : `
+          <p class="detect-note">Auto-detected a fresh keg on this line. The scale can't tell which beer or keg size went on — confirm so tracking stays accurate.</p>
+          <div class="confirm-row">
+            <span class="confirm-guess">Still <b>${b.name}</b> · ${SIZES[b.size].label}?</span>
+          </div>
+          <div class="lvl-actions">
+            <button class="btn-mini solid" data-confirm="${idx}">Confirm</button>
+            <button class="btn-mini" data-edit="${idx}">Change beer / size</button>
+          </div>`}
+        </div>`;
+
+      return `
+      <div class="lvl-card ${b.status === "crit" ? "crit" : ""}">
+        <div class="lvl-top">
+          <div>
+            <div class="lvl-name">${b.name}</div>
+            <div class="lvl-style">${b.style}${b.guest ? '<span class="guest">Guest</span>' : ""} · ${SIZES[b.size].label}</div>
+          </div>
+          ${statusChip(b.status)}
+        </div>
+        ${b.editing ? editForm(b, idx) : `
+        <div class="lvl-pct">
+          <span class="big">${b.keg}%</span>
+          <span class="pints">${b.pints} pints left</span>
+        </div>
+        <div class="bar"><div class="bar-fill" data-w="${b.keg}"></div></div>
+        <div class="autotrack"><span class="live-dot"></span>Auto-tracked from scale</div>
+        <div class="lvl-stats">
+          <div class="s"><div class="n">${b.ppd}<span class="arrow"> /day</span></div><div class="l">Avg pours</div></div>
+          <div class="s"><div class="n">${trendStr(b.trend)}</div><div class="l">vs last wk</div></div>
+          <div class="s"><div class="n">${fmtDays(b.daysLeft)}</div><div class="l">Stock left</div></div>
+        </div>
+        <p class="trend-note">${b.name} pours are <b>${b.trend >= 0 ? "up" : "down"} ${Math.abs(b.trend)}%</b> compared to last week.</p>
+        <div class="lvl-actions">
+          <button class="btn-mini" data-edit="${idx}">Edit keg</button>
+          <button class="btn-mini solid" data-order="${b.name}">${b.status === "ok" ? "Add to order" : "Order now"}</button>
+        </div>`}
+      </div>`;
+    }).join("");
+
+    requestAnimationFrame(() => document.querySelectorAll("#lvl-grid .bar-fill").forEach(el => el.style.width = el.dataset.w + "%"));
+
+    // Confirm an auto-detected keg change
+    document.querySelectorAll("[data-confirm]").forEach(btn => btn.addEventListener("click", () => {
+      const b = beers[+btn.dataset.confirm];
+      delete b.pending; delete b.jumpPints;
+      renderLevels(); renderOrdering();
+    }));
+    // Open the edit form (reassign beer / size)
+    document.querySelectorAll("[data-edit]").forEach(btn => btn.addEventListener("click", () => {
+      beers[+btn.dataset.edit].editing = true; renderLevels();
+    }));
+    // Save / cancel edits
+    document.querySelectorAll("[data-save]").forEach(btn => btn.addEventListener("click", () => {
+      const b = beers[+btn.dataset.save];
+      b.name = $("edit-name-" + btn.dataset.save).value.trim() || b.name;
+      b.style = $("edit-style-" + btn.dataset.save).value.trim() || b.style;
+      b.size = $("edit-size-" + btn.dataset.save).value;
+      delete b.editing; delete b.pending; delete b.jumpPints;
+      Object.assign(b, enrich(b));
+      renderLevels(); renderOrdering();
+    }));
+    document.querySelectorAll("[data-cancel]").forEach(btn => btn.addEventListener("click", () => {
+      delete beers[+btn.dataset.cancel].editing; renderLevels();
+    }));
+    // Jump to ordering
+    document.querySelectorAll("[data-order]").forEach(btn => btn.addEventListener("click", () => {
+      goTo("ordering");
+      const cb = document.querySelector(`.add-check[data-name="${btn.dataset.order}"]`);
+      if (cb && !cb.checked) { cb.checked = true; updateCart(); }
+    }));
+  }
+
+  // Inline edit form — the human-only fields the scale can't infer
+  function editForm(b, idx) {
+    return `
+      <div class="edit-form">
+        <label>Beer<input id="edit-name-${idx}" type="text" value="${b.name.replace(/"/g,'&quot;')}"></label>
+        <label>Style<input id="edit-style-${idx}" type="text" value="${b.style.replace(/"/g,'&quot;')}"></label>
+        <label>Keg size
+          <select id="edit-size-${idx}">
+            ${Object.entries(SIZES).map(([k,v]) => `<option value="${k}" ${k===b.size?"selected":""}>${v.label} · ${v.pints} pt</option>`).join("")}
+          </select>
+        </label>
+        <div class="lvl-actions">
+          <button class="btn-mini solid" data-save="${idx}">Save</button>
+          <button class="btn-mini" data-cancel="${idx}">Cancel</button>
+        </div>
+      </div>`;
+  }
+
+  // DEMO: stand-in for a live weight jump off the scale. In production the ESP32
+  // reports the new weight and this same detection runs on the incoming reading.
+  function simulateSwap() {
+    const candidates = beers.filter(b => !b.pending);
+    if (!candidates.length) return;
+    // Pick the lowest keg — the one most likely about to be changed.
+    const b = candidates.sort((a,c) => a.keg - c.keg)[0];
+    b.jumpPints = Math.round((100 - b.keg) / 100 * SIZES[b.size].pints);
+    Object.assign(b, enrich({ ...b, keg: 100 }));
+    b.pending = true;
+    renderLevels();
+  }
+
+  $("lvl-sort").addEventListener("change", renderLevels);
+  $("lvl-low").addEventListener("change", renderLevels);
+  $("sim-swap").addEventListener("click", simulateSwap);
+
+  /* ============ ORDERING ============ */
+  function orderByLabel(b) {
+    const offset = Math.max(0, Math.ceil(b.daysLeft) - LEAD_DAYS);
+    if (offset <= 0) return { text:"Order now", now:true };
+    const d = new Date(); d.setDate(d.getDate() + offset);
+    const date = d.toLocaleDateString(undefined, { month:"short", day:"numeric" });
+    return { text:`${date} · in ${offset}d`, now:false };
+  }
+  function renderOrdering() {
+    const list = beers.slice().sort((a,b) => a.daysLeft - b.daysLeft);
+    $("order-body").innerHTML = list.map(b => {
+      const ob = orderByLabel(b);
+      return `
+      <tr class="${ob.now ? "urgent" : ""}">
+        <td><input type="checkbox" class="add-check" data-name="${b.name}" data-qty="${b.qty}" ${ob.now ? "checked" : ""}></td>
+        <td><div class="t-name">${b.name}</div><div class="t-sub">${b.style}${b.guest ? " · guest" : ""}</div></td>
+        <td class="t-num">${b.keg}%</td>
+        <td class="t-num">${fmtDays(b.daysLeft)}</td>
+        <td class="t-num">${b.ppd * 7}</td>
+        <td>${ob.now ? '<span class="order-tag now">Order now</span>' : `<span class="t-num">${ob.text}</span>`}</td>
+        <td><span class="qty-pill">${b.qty}</span> <span class="t-sub">keg${b.qty>1?"s":""}</span></td>
+      </tr>`;
+    }).join("");
+    document.querySelectorAll(".add-check").forEach(cb => cb.addEventListener("change", updateCart));
+    updateCart();
+  }
+  function updateCart() {
+    const checked = [...document.querySelectorAll(".add-check:checked")];
+    const lines = $("cart-lines");
+    if (!checked.length) {
+      lines.innerHTML = '<div class="cart-empty">Check beers on the left to build this week\'s order.</div>';
+      $("cart-total").textContent = "0"; $("cart-btn").disabled = true; return;
+    }
+    let total = 0;
+    lines.innerHTML = checked.map(cb => {
+      const q = +cb.dataset.qty; total += q;
+      return `<div class="cart-line"><span>${cb.dataset.name}</span><span class="q">${q} keg${q>1?"s":""}</span></div>`;
+    }).join("");
+    $("cart-total").innerHTML = total + ' <small>across ' + checked.length + '</small>';
+    $("cart-btn").disabled = false;
+  }
+  $("cart-btn").addEventListener("click", () => {
+    const checked = [...document.querySelectorAll(".add-check:checked")];
+    const total = checked.reduce((s,cb) => s + (+cb.dataset.qty), 0);
+    $("cart-lines").innerHTML = `<div class="cart-done">Order sheet ready to send to your distributor.<span class="mono">${total} kegs · ${checked.length} beers</span></div>`;
+    $("cart-btn").textContent = "Sheet generated ✓"; $("cart-btn").disabled = true;
+  });
+
+  /* ============ SUMMARY ============ */
+  const SHARES = [ // share of total pours
+    { name:"Bud Light", s:0.19 }, { name:"Guinness", s:0.16 }, { name:"Yuengling", s:0.15 },
+    { name:"Coors Light", s:0.14 }, { name:"Miller Lite", s:0.13 }, { name:"Stone IPA", s:0.07 },
+    { name:"Smithwick's", s:0.06 }, { name:"Whalers Rise", s:0.05 }, { name:"Captain's Daughter", s:0.05 },
+  ];
+  const MIX = [
+    { name:"Light Lagers", pc:46, shade:"#0b0b0b" }, { name:"Amber & Red", pc:21, shade:"#3d3d3b" },
+    { name:"IPA & Pale", pc:18, shade:"#8d8d8a" }, { name:"Stout", pc:15, shade:"#d5d5d2" },
+  ];
+  const PERIODS = {
+    day: {
+      pints:142, revenue:"1,010", kegs:"1.1", peak:"Peak 8–9pm",
+      note:["yesterday", +8], sub:"Pours by 2-hour block, open to close",
+      labels:["12p","2p","4p","6p","8p","10p","12a"], bars:[6,10,14,22,34,30,16],
+    },
+    week: {
+      pints:968, revenue:"6,890", kegs:"7.8", peak:"Busiest Fri",
+      note:["last week", +12], sub:"Pours per day, Mon–Sun",
+      labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], bars:[96,88,104,120,190,175,95],
+    },
+    month: {
+      pints:"4,120", revenue:"29,400", kegs:"33", peak:"Busiest week 3",
+      note:["last month", +5], sub:"Pours per week",
+      labels:["Wk 1","Wk 2","Wk 3","Wk 4"], bars:[980,1010,1130,1000],
+    },
+    year: {
+      pints:"51,300", revenue:"366k", kegs:"414", peak:"Busiest Oct",
+      note:["last year", +18], sub:"Pours per month",
+      labels:["J","F","M","A","M","J","J","A","S","O","N","D"], bars:[3200,3000,3600,3900,4400,4700,5100,5000,4300,4800,4100,4200],
+    },
+  };
+  let period = "week";
+  function pintsNumber(p) { return typeof p === "string" ? parseInt(p.replace(/,/g,"")) : p; }
+
+  function renderSummary() {
+    const d = PERIODS[period];
+    $("sum-metrics").innerHTML = `
+      <div class="metric"><div class="k">Pints poured</div><div class="v">${d.pints}</div><div class="d"><b>${d.note[1] > 0 ? "▲" : "▼"} ${Math.abs(d.note[1])}%</b> vs ${d.note[0]}</div></div>
+      <div class="metric"><div class="k">Revenue</div><div class="v"><small>$</small>${d.revenue}</div><div class="d">est. from pour prices</div></div>
+      <div class="metric"><div class="k">Kegs emptied</div><div class="v">${d.kegs}</div><div class="d">half-barrels</div></div>
+      <div class="metric"><div class="k">Traffic</div><div class="v" style="font-size:20px">${d.peak}</div><div class="d">highest volume window</div></div>`;
+    $("sum-note").innerHTML = `Overall consumption is <b>${d.note[1] > 0 ? "up" : "down"} ${Math.abs(d.note[1])}%</b> compared to the previous ${period}. Guinness and Captain's Daughter are driving most of the rise.`;
+    $("chart-sub").textContent = d.sub;
+
+    const max = Math.max(...d.bars);
+    $("barchart").innerHTML = d.labels.map((l,i) => `
+      <div class="col"><div class="bar-v" data-h="${(d.bars[i]/max*100).toFixed(1)}"></div><div class="bl">${l}</div></div>`).join("");
+    requestAnimationFrame(() => document.querySelectorAll("#barchart .bar-v").forEach(el => el.style.height = el.dataset.h + "%"));
+
+    const totalPints = pintsNumber(d.pints);
+    const maxShare = SHARES[0].s;
+    $("ranklist").innerHTML = SHARES.map(r => `
+      <div class="rank-row">
+        <div class="rank-head"><span class="nm">${r.name}</span><span class="vl">${Math.round(r.s*totalPints).toLocaleString()} pts</span></div>
+        <div class="rank-track"><div class="rank-fill" data-w="${(r.s/maxShare*100).toFixed(0)}"></div></div>
+      </div>`).join("");
+    requestAnimationFrame(() => document.querySelectorAll("#ranklist .rank-fill").forEach(el => el.style.width = el.dataset.w + "%"));
+
+    $("mix").innerHTML = MIX.map(m => `
+      <div class="cell"><div class="swatch" style="background:${m.shade}"></div><div class="nm">${m.name}</div><div class="pc">${m.pc}% of pours</div></div>`).join("");
+  }
+  document.querySelectorAll("#period-seg button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#period-seg button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active"); period = b.dataset.p; renderSummary();
+  }));
+</script>
